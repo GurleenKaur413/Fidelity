@@ -1,0 +1,11 @@
+transaction_id,account_id,transaction_date,amount,transaction_type,merchant
+T1,A101,2025-08-01,15000.0,credit,Amazon
+T2,A102,2025-08-02,-20000.0,debit,Flipkart
+T3,A101,2025-08-03,-5000.0,debit,BigBazaar
+T4,A103,2025-08-04,75000.0,credit,Paytm
+T5,A104,2025-08-05,-120000.0,debit,TeslaMotors
+T6,A102,2025-08-06,60000.0,credit,Reliance
+T7,A101,2025-08-07,-150000.0,debit,TeslaMotors
+T8,A103,2025-08-08,-8000.0,debit,BigBazaar
+T9,A104,2025-08-09,200000.0,credit,GoldLoan
+T10,A105,2025-08-10,-2500.0,debit,Starbucks

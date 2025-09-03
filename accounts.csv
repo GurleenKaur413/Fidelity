@@ -1,0 +1,6 @@
+account_id,customer_name,account_type,balance,branch
+A101,Ravi Kumar,savings,25000,Delhi
+A102,Anita Sharma,current,50000,Mumbai
+A103,John Doe,savings,100000,Bangalore
+A104,Priya Singh,current,200000,Delhi
+A105,Amit Patel,savings,15000,Mumbai

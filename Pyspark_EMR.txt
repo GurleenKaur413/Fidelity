@@ -1,0 +1,124 @@
+
+data = [1, 2, 3, 4, 5]
+rdd = sc.parallelize(data)
+
+
+squared = rdd.map(lambda x: x * x)
+
+
+print("Squared Numbers:", squared.collect())
+
+
+df = spark.createDataFrame([("Alice", 2000), ("Bob", 1500), ("Charlie", 3000)], ["name", "salary"])
+df.show()
+
+
+from pyspark.sql.functions import col
+df2 = df.withColumn("updated_salary", col("salary") * 1.1)
+df2.show()
+
+-------------------------------------------------------------------------
+
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+
+# LOW-RESOURCE Spark session 
+spark = SparkSession.builder \
+    .appName("CustomersCSV_SmallConfig") \
+    .master("yarn") \
+    .config("spark.driver.memory", "1g") \
+    .config("spark.executor.memory", "1g") \
+    .config("spark.executor.instances", "1") \
+    .config("spark.executor.cores", "1") \
+    .config("spark.yarn.am.memory", "1g") \
+    .config("spark.yarn.am.cores", "1") \
+    .getOrCreate()
+
+schema = StructType([
+    StructField("CUSTOMERID", IntegerType(), True),
+    StructField("CUSTOMERNAME", StringType(), True),
+    StructField("EMAIL", StringType(), True),
+    StructField("CITY", StringType(), True),
+    StructField("COUNTRY", StringType(), True),
+    StructField("TERRITORY", StringType(), True),
+    StructField("CONTACTFIRSTNAME", StringType(), True),
+    StructField("CONTACTLASTNAME", StringType(), True)
+])
+
+
+df = spark.read.csv("s3://aws-emr-studio-698614186346-us-west-2/customers.csv",
+                    header=True, schema=schema)
+
+df.limit(5).show(truncate=False)
+df.printSchema()
+
+spark.stop()
+
+
+--------------
+
+things to check:
+1. avoid small files
+2. lower the memory 
+3. No inferSchema to avoids full scan
+4. Preview with .limit(5).show() 
+5. Convert to Parquet 
+
+
+
+----------------------------------------------------------------------------
+
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("CustomersDemoS3").getOrCreate()
+
+
+df = spark.read.csv("s3://aws-emr-studio-698614186346-us-west-2/customers.csv", header=True, inferSchema=True)
+
+df.show(5)
+df.printSchema()
+
+
+df.select("CustomerName", "Email").show(5)
+
+---------------------------------------------------------------------------------------
+
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+
+
+spark = SparkSession.builder \
+    .appName("OptimizedCustomersDemo") \
+    .config("spark.sql.shuffle.partitions", "4") \  
+    .getOrCreate()
+
+
+schema = StructType([
+    StructField("CustomerID", IntegerType(), True),
+    StructField("CustomerName", StringType(), True),
+    StructField("Email", StringType(), True),
+    StructField("Country", StringType(), True)
+])
+
+
+df = spark.read.csv(
+    "s3://aws-emr-studio-698614186346-us-west-2/customers.csv",
+    header=True,
+    schema=schema
+).coalesce(1)   
+
+
+
+df.filter(df.Country == "India") \
+  .select("CustomerID", "CustomerName", "Email") \
+  .show(5, truncate=False)
+
+
+df.groupBy("Country").count().orderBy("count", ascending=False).show()
+
+
+
+df.write.mode("overwrite").parquet("s3://your-bucket/output/customers_parquet")
+
